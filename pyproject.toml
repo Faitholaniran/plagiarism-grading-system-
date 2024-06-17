@@ -1,0 +1,18 @@
+[project]
+name = "django-projects"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Oregunwa Oluwadamilola Michael", email = "moregunwa@gmail.com" },
+]
+dependencies = ["django>=5.0.6"]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[project.scripts]
+migrate = "python ./manage.py migrate"
+
+[tool.rye]
+managed = true
+virtual = true
+dev-dependencies = []

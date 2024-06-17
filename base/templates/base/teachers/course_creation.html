@@ -1,0 +1,27 @@
+{% extends "base/dashboard.html" %}
+
+{% block title %}
+Course Creation
+{% endblock title %}
+
+{% block content %}
+<div class="col-lg-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+    <h4 class="card-title">Create a course</h4>
+<form action="{% url 'teacher/create_course' %}" method="post">
+  {% csrf_token %}
+  
+  {% for field in form  %}
+  
+  <div class="form-group">
+    <p class="my-4">{{ field.label }}</p>
+  {{ field }}
+  </div>
+  {% endfor %}
+  <div>
+    <button class="btn btn-block btn-gradient-primary btn-md font-weight-medium auth-form-btn" type="submit">Create</button>
+  </div>
+</form>
+</div></div></div>
+{% endblock content %}

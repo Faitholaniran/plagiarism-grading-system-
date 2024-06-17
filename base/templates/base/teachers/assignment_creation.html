@@ -1,0 +1,37 @@
+{% extends "base/dashboard.html" %}
+
+{% block title %}
+Assignment Creation
+{% endblock title %}
+
+{% block content %}
+<div class="col-lg-12 grid-margin stretch-card">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Add an assignment for {{course.name}}</h4>
+      <form action="{% url 'teacher/create-assignment' course.id %}" method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <p class="my-4">{{ form.name.label }}</p>
+          {{ form.name }}
+        </div>
+        <div class="form-group">
+          <p class="my-4">{{ form.description.label }}</p>
+          {{ form.description }}
+        </div>
+
+        <div class="form-group">
+          <p class="my-4">{{ form.due_date.label }}</p>
+          <input type="datetime-local" class="form-control form-control-lg" name="due_date"
+            placeholder="Enter Due Date">
+        </div>
+        <div>
+          <button class="btn btn-block btn-gradient-primary btn-md font-weight-medium auth-form-btn"
+            type="submit">Create</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

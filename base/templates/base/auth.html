@@ -1,0 +1,42 @@
+{% extends "base/base.html" %}
+
+{% block body %}
+
+<div class="container-scroller">
+  <div class="container-fluid page-body-wrapper full-page-wrapper">
+    <div class="content-wrapper d-flex align-items-center auth">
+      <div class="row flex-grow">
+        <div class="col-lg-4 mx-auto">
+          <div class="auth-form-light text-left p-5">
+            <h4>
+              {% block auth_title %}
+
+              {% endblock auth_title %}
+            </h4>
+            <h6 class="font-weight-light">
+              {% block auth_description %}
+
+              {% endblock auth_description %}
+            </h6>
+            {% if messages %}
+            <div class="bg-gradient-danger text-white p-4">
+            <ul class="messages">
+                {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+              
+            </div>
+            {% endif %}
+            <div class="pt-3">
+              {% block content %}
+
+              {% endblock content %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock body %}

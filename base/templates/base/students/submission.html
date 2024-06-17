@@ -1,0 +1,10 @@
+{% extends 'base/dashboard.html' %}
+{% block title %} Submisssion for {{course.name}} - {{assignment.name}} {% endblock title%}
+{% block content %}
+<h1>Submission for {{course.name}} - {{assignment.name}}</h1>
+<form method="post" action="{% url 'student/submission' course.id assignment.id %}" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{form.as_p}}
+  <input type="submit" value="Submit" />
+</form>
+{% endblock content %}
