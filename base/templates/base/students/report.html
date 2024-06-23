@@ -1,0 +1,24 @@
+{% extends 'base/dashboard.html' %}
+{% block title %}
+  Student Report
+{% endblock %}
+{% block content %}
+  <h1>Report Content</h1>
+  {% if is_due %}
+    <p>Report cannot be shown because the assignment is not yet due</p>
+  {% else %}
+    <h3>Essay Grading</h3>
+    <p>Predicted Essay Score: {{ grading.essay_score }}</p>
+    <p>Spelling Errors: {{ grading.spelling_errors }}</p>
+    <p>Grammar Errors: {{ grading.grammar_errors }}</p>
+    <p>Readability Score: {{ grading.readability_score }}</p>
+    <p>Readability Level: {{ readability_level }}</p>
+    <p>Topics Covered: {{ grading.covered_topics }}</p>
+    <p>In Line with Topic Description: {{ grading.in_line }}</p>
+
+    <h3>Plagarism</h3>
+    <p>
+      Plagarized: {{ plagarized }} <span class="text-red">({{ plagarism.score }})</span>
+    </p>
+  {% endif %}
+{% endblock %}

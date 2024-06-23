@@ -18,7 +18,7 @@ from . import models
 
 # INFO: Student Routes
 def student_course(request: HttpRequest):
-    """
+    """{
     Get the all the courses for a student and put it in a list
     """
     user: models.Student = request.user.get_student()
@@ -142,6 +142,9 @@ def student_report(request: HttpRequest, pk: int):
     """
     Get the submission report for a student assignment submission
     """
+    submission = models.Submission.objects.get(id = pk)
+    if not submission.assignment.is_due():
+        return render("base/students/report.html", context={"is_due": submission.assignment.is_due()})
     return HttpResponse(b"Not yet implemented")
 
 

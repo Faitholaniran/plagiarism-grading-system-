@@ -5,7 +5,12 @@ description = "Add your description here"
 authors = [
     { name = "Oregunwa Oluwadamilola Michael", email = "moregunwa@gmail.com" },
 ]
-dependencies = ["django>=5.0.6"]
+dependencies = [
+    "django>=5.0.6",
+    "numpy>=2.0.0",
+    "tensorflow>=2.16.1",
+    "keras>=3.3.3",
+]
 readme = "README.md"
 requires-python = ">= 3.8"
 
