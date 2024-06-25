@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import localtime, is_aware
+from datetime import timedelta
 
 # Create your models here.
 
@@ -109,7 +111,13 @@ class Assignment(models.Model):
         return str(self.name)
 
     def is_due(self) -> bool:
-        return timezone.now() > self.due_date
+        time = timezone.now()
+        due_date = self.due_date
+        time = time + timedelta(hours=1) 
+        val = time > due_date
+
+        print(val, time, due_date)
+        return val
 
 
 class Submission(models.Model):
@@ -128,7 +136,7 @@ class Submission(models.Model):
 class Plagarism(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     score = models.FloatField()
-    sources = models.TextField()
+    sources = models.TextField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -138,8 +146,21 @@ class Plagarism(models.Model):
 class Similarity(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     score = models.FloatField()
-    sources = models.TextField()
+    sources = models.TextField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return str(self.score)
+
+class Grading(models.Model):
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    predicted_score = models.FloatField()
+    spelling_errors = models.FloatField()
+    grammar_errors = models.FloatField()
+    readability_score = models.FloatField()
+    readability_level = models.TextField(max_length=256)
+    topics_covered=models.TextField()
+    description_match = models.TextField()
+    total_score = models.FloatField()
+    sources = models.TextField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)

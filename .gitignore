@@ -10,3 +10,4 @@ wheels/
 .venv
 PurpleAdmin-* 
 *.sqlite3
+myenv

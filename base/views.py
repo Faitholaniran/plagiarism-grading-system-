@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib import messages
+from .essay_model import predict_word
 
 from base.forms import (
     AssignmentCreationForm,
@@ -88,6 +89,7 @@ def student_assignment(request: HttpRequest, pk: str):
 
     course = models.Course.objects.get(id=int(pk))
     assignments = models.Assignment.objects.filter(course__id=int(pk))
+    print(assignments)
     submission = models.Submission.objects.filter(student__user=request.user)
     submitted_assignments = [submission.assignment for submission in submission]
 
@@ -145,7 +147,18 @@ def student_report(request: HttpRequest, pk: int):
     submission = models.Submission.objects.get(id = pk)
     if not submission.assignment.is_due():
         return render("base/students/report.html", context={"is_due": submission.assignment.is_due()})
-    return HttpResponse(b"Not yet implemented")
+    grading = None
+    try:
+        grading = models.Grading.objects.get(submission=submission)
+    except:
+        user_content = open(submission.file.path).read()
+        other_submissions = models.Submission.objects.filter(assignment=submission.assignment)
+        other_submissions = filter(lambda x: x != submission, other_submissions)
+        content = [open(submission.file.path).read() for submission in other_submissions]
+        grading_stuff = predict_word(user_content, 100, ["test topic"], "this is a test topic")
+        grading = models.Grading.objects.create(**grading_stuff, submission=submission)
+        
+    return render(request, "base/students/report.html", context={"is_due": False, "grading": grading})
 
 
 # INFO: Teacher Routes
@@ -248,7 +261,26 @@ def teacher_submissions(request: HttpRequest, pk: str, ass_pk: str):
     }
     return render(request, "base/teachers/submissions.html", ctx)
 
-    return HttpResponse(b"Not yet implemented")
+def teacher_report(request: HttpRequest, pk: int):
+    """
+    Get the submission report for a student assignment submission
+    """
+    submission = models.Submission.objects.get(id = pk)
+    if not submission.assignment.is_due():
+        return render("base/teacher/report.html", context={"is_due": submission.assignment.is_due()})
+    grading = None
+    try:
+        grading = models.Grading.objects.get(submission=submission)
+    except:
+        user_content = open(submission.file.path).read()
+        other_submissions = models.Submission.objects.filter(assignment=submission.assignment)
+        other_submissions = filter(lambda x: x != submission, other_submissions)
+        content = [open(submission.file.path).read() for submission in other_submissions]
+        grading_stuff = predict_word(user_content, 100, ["test topic"], "this is a test topic")
+        grading = models.Grading.objects.create(**grading_stuff, submission=submission)
+        
+    return render(request, "base/teachers/report.html", context={"is_due": False, "grading": grading})
+
 
 
 # INFO: Auth Routes

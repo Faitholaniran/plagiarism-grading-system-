@@ -44,6 +44,7 @@ urlpatterns = [
         views.teacher_submissions,
         name="teacher/submissions",
     ),
+    path("teacher/submission/<str:pk>/report", views.teacher_report, name="teacher/report"),
     # INFO: Auth Paths
     path("login/", views.login_register, name="login"),
     path("signup/", views.signup, name="signup"),

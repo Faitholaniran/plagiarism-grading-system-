@@ -1,9 +1,9 @@
 {% extends 'base/dashboard.html' %}
 {% block title %}
-  Student Report
+  Submission Report
 {% endblock %}
 {% block content %}
-  <h1>Report Content</h1>
+  <h1>Report Content for {{ grading.submission.student.user.first_name }}</h1>
   {% if is_due %}
     <p>Report cannot be shown because the assignment is not yet due</p>
   {% else %}

@@ -1,49 +1,47 @@
 {% extends 'base/dashboard.html' %}
-{% block title %} Submissions {% endblock title%}
+{% block title %}
+  Submissions
+{% endblock %}
 {% block content %}
+  <div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title d-flex justify-content-between align-items-center"><span>Submission for {{ assignment.name }}</span></h4>
 
-<div class="col-lg-12 grid-margin stretch-card">
-  <div class="card">
-    <div class="card-body">
-      <h4 class="card-title d-flex justify-content-between align-items-center">
-        <span>Submission for {{assignment.name}}</span>
-      </h4>
+        {% if submissions|length == 0 %}
+          <h4 class="my-4 text-center">There haven't been any submission for the assignment</h4>
+        {% else %}
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Student Name</th>
+                <th>Submission Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for submission in submissions %}
+                <tr>
+                  <td>
+                    <a href="{% url 'teacher/course' %}">{{ submission.file_name }}</a>
+                  </td>
+                  <td>{{ submission.student.get_name }}</td>
+                  <td>{{ submission.created_at|date:'D d M Y' }} {{ submission.created_at|time:'H:i' }}</td>
 
-      {% if submissions|length == 0 %}
-      <h4 class="my-4 text-center">
-        There haven't been any submission for the assignment
-      </h4>
-
-      {% else %}
-
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>File Name</th>
-            <th>Student Name</th>
-            <th>Submission Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for submission in submissions %}
-          <tr>
-            <td>
-              <a href="{% url 'teacher/course' %}">{{submission.file_name}}</a>
-            </td>
-            <td>{{submission.student.get_name}}</td>
-            <td>
-              {{ submission.created_at|date:"D d M Y" }} {{submission.created_at|time:"H:i" }}
-            </td>
-            <td disabled><a href="#" class="disabled nav-link-disabled" style="pointer-events: none;" disabled>View
-                Grading</a></td>
-          </tr>
-
-          {% endfor %}
-        </tbody>
-      </table>
-      {% endif %}
+                  <td>
+                    {% if submission.assignment.is_due %}
+                      <a href="{% url 'teacher/report' submission.id %}" class="">View Grading</a>
+                    {% else %}
+                      <a href="#" class="disabled nav-link-disabled" style="pointer-events: none; color: gray;" disabled>View Grading</a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
     </div>
   </div>
-</div>
-{% endblock content %}
+{% endblock %}
