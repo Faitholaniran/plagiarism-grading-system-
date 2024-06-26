@@ -332,6 +332,8 @@ def teacher_report(request: HttpRequest, pk: int):
         # return HttpResponse(b"Grading not found")
         grading_stuff = grading_predict(
             user_content, 100, ["test topic"], "this is a test topic")
+        if plagarism and plagarism.plagarized:
+            grading_stuff["predicted_score"] -= 10
         grading = models.Grading.objects.create(
             **grading_stuff, submission=submission)
 

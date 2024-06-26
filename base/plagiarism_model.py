@@ -90,42 +90,46 @@ target_essays = [
 
 ]
 
-# Encode assignment text and target essays into vectors using multiple models
-assignment_embeddings = get_embeddings(models, [assignment_text])
-target_embeddings = get_embeddings(models, target_essays)
+def predict(assignment: str, assignment_pool: list[str]):
+    assignment_text = assignment
+    target_essays = assignment_pool
 
-# Calculate cosine similarities for each model
-similarities = []
-for i in range(len(models)):
-    assignment_vector = assignment_embeddings[i][0]
-    target_vectors = target_embeddings[i]
-    similarity = cosine_similarity([assignment_vector], target_vectors)[0]
-    similarities.append(similarity)
+    # Encode assignment text and target essays into vectors using multiple models
+    assignment_embeddings = get_embeddings(models, [assignment_text])
+    target_embeddings = get_embeddings(models, target_essays)
 
-# Average the similarities from different models
-average_similarities = np.mean(similarities, axis=0)
+    # Calculate cosine similarities for each model
+    similarities = []
+    for i in range(len(models)):
+        assignment_vector = assignment_embeddings[i][0]
+        target_vectors = target_embeddings[i]
+        similarity = cosine_similarity([assignment_vector], target_vectors)[0]
+        similarities.append(similarity)
 
-# Calculate exact word match scores
-word_match_scores = [exact_word_match_score(assignment_text, target_text) for target_text in target_essays]
+    # Average the similarities from different models
+    average_similarities = np.mean(similarities, axis=0)
 
-# Calculate synonym match scores
-synonym_match_scores = [synonym_match_score(assignment_text, target_text) for target_text in target_essays]
+    # Calculate exact word match scores
+    word_match_scores = [exact_word_match_score(assignment_text, target_text) for target_text in target_essays]
 
-# Combine semantic similarity, exact word match score, and synonym match score
-final_scores = 0.4 * average_similarities + 0.3 * np.array(word_match_scores) + 0.3 * np.array(synonym_match_scores)
+    # Calculate synonym match scores
+    synonym_match_scores = [synonym_match_score(assignment_text, target_text) for target_text in target_essays]
 
-# Print similarity percentages
-for i, score in enumerate(final_scores):
-    percentage = score * 100
-    print(f"Similarity with target essay {i+1}: {percentage:.2f}%")
+    # Combine semantic similarity, exact word match score, and synonym match score
+    final_scores = 0.4 * average_similarities + 0.3 * np.array(word_match_scores) + 0.3 * np.array(synonym_match_scores)
 
-# Define plagiarism threshold
-plagiarism_threshold = 70.0
+    # Print similarity percentages
+    for i, score in enumerate(final_scores):
+        percentage = score * 100
+        print(f"Similarity with target essay {i+1}: {percentage:.2f}%")
 
-# Check for plagiarism
-plagiarized = any(score * 100 >= plagiarism_threshold for score in final_scores)
+    # Define plagiarism threshold
+    plagiarism_threshold = 70.0
 
-if plagiarized:
-    print("\nThe assignment contains plagiarism.")
-else:
-    print("\nNo plagiarism detected.")
+    # Check for plagiarism
+    plagiarized = any(score * 100 >= plagiarism_threshold for score in final_scores)
+
+    if plagiarized:
+        print("\nThe assignment contains plagiarism.")
+    else:
+        print("\nNo plagiarism detected.")
