@@ -2,7 +2,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib import messages
-from .essay_model import predict_word
+from .essay_model import predict_word as grading_predict
+from .plagiarism_model import predict as plag_predict
 
 from base.forms import (
     AssignmentCreationForm,
@@ -49,7 +50,8 @@ def student_register(request: HttpRequest):
                 form.save_m2m()
                 return redirect("student/course")
             else:
-                messages.error(request, "An error occured trying to register the user")
+                messages.error(
+                    request, "An error occured trying to register the user")
         form = StudentRegistrationForm()
         ctx = {"form": form}
         return render(request, "base/students/register.html", ctx)
@@ -91,7 +93,8 @@ def student_assignment(request: HttpRequest, pk: str):
     assignments = models.Assignment.objects.filter(course__id=int(pk))
     print(assignments)
     submission = models.Submission.objects.filter(student__user=request.user)
-    submitted_assignments = [submission.assignment for submission in submission]
+    submitted_assignments = [
+        submission.assignment for submission in submission]
 
     return render(
         request,
@@ -136,7 +139,8 @@ def student_submissions(request: HttpRequest, course_pk: int, ass_pk: int):
                 return HttpResponse(b"There was an error in submitting the form")
 
         submission_form = SubmissionForm()
-        ctx = {"course": course, "assignment": assignment, "form": submission_form}
+        ctx = {"course": course, "assignment": assignment,
+               "form": submission_form}
         return render(request, "base/students/submission.html", ctx)
 
 
@@ -144,21 +148,48 @@ def student_report(request: HttpRequest, pk: int):
     """
     Get the submission report for a student assignment submission
     """
-    submission = models.Submission.objects.get(id = pk)
+    submission = models.Submission.objects.get(id=pk)
     if not submission.assignment.is_due():
         return render("base/students/report.html", context={"is_due": submission.assignment.is_due()})
+
+    user_content = open(submission.file.path).read()
+    other_submissions = models.Submission.objects.filter(
+        assignment=submission.assignment)
+    other_submissions = list(filter(
+        lambda x: x != submission, other_submissions))
+    content = [open(submission.file.path).read()
+               for submission in other_submissions]
+    plagarism = None
+    try:
+        plagarism = models.Plagarism.objects.get(submission=submission)
+    except:
+        plag_stuff = plag_predict(user_content, content, 70)
+        (scores, plagarized) = plag_stuff
+        scores = [str(score) for score in scores]
+
+        students_copied_from = [
+            str(submission.id) for submission in other_submissions]
+        sources = ",".join(students_copied_from)
+        plagarism = models.Plagarism.objects.create(sources_scores=",".join(
+            scores), plagarized=plagarized, submission=submission, sources=sources)
+
     grading = None
     try:
         grading = models.Grading.objects.get(submission=submission)
     except:
-        user_content = open(submission.file.path).read()
-        other_submissions = models.Submission.objects.filter(assignment=submission.assignment)
-        other_submissions = filter(lambda x: x != submission, other_submissions)
-        content = [open(submission.file.path).read() for submission in other_submissions]
-        grading_stuff = predict_word(user_content, 100, ["test topic"], "this is a test topic")
-        grading = models.Grading.objects.create(**grading_stuff, submission=submission)
-        
-    return render(request, "base/students/report.html", context={"is_due": False, "grading": grading})
+        grading_stuff = grading_predict(
+            user_content, 100, ["test topic"], "this is a test topic")
+        if plagarism and plagarism.plagarized:
+            grading_stuff["predicted_score"] -= 10
+        grading = models.Grading.objects.create(
+            **grading_stuff, submission=submission)
+        grading.save()
+
+    plag_sources = [models.Submission.objects.get(
+        id=int(submission)) for submission in filter(lambda x: x != "", plagarism.sources.split(","))]
+    plag_source_scores = plagarism.sources_scores.split(",")
+    plag_data = zip(plag_sources, plag_source_scores)
+    return render(request, "base/students/report.html", context={"is_due": false, "grading": grading, "plagarism": plagarism, "plag_data": plag_data})
 
 
 # INFO: Teacher Routes
@@ -179,7 +210,8 @@ def teacher_register(request: HttpRequest):
                 form.save_m2m()
                 return redirect("teacher/course")
             else:
-                messages.error(request, "An error occured trying to register the user")
+                messages.error(
+                    request, "An error occured trying to register the user")
         form = TeacherRegistrationForm()
         ctx = {"form": form}
         return render(request, "base/teachers/register.html", ctx)
@@ -209,7 +241,8 @@ def teacher_create_course(request: HttpRequest):
             course_form.save_m2m()
             return redirect("teacher/course")
         else:
-            messages.error(request, "There was an error in creating a new course")
+            messages.error(
+                request, "There was an error in creating a new course")
 
     course_form = CourseCreationForm()
     ctx = {"form": course_form}
@@ -231,7 +264,8 @@ def teacher_create_assignment(request: HttpRequest, course_pk: str):
             assignment_form.save_m2m()
             return redirect("teacher/course")
         else:
-            messages.error(request, "There was an error in creating a new course")
+            messages.error(
+                request, "There was an error in creating a new course")
 
     assignment_form = AssignmentCreationForm()
     ctx = {"form": assignment_form, "course": course}
@@ -261,26 +295,51 @@ def teacher_submissions(request: HttpRequest, pk: str, ass_pk: str):
     }
     return render(request, "base/teachers/submissions.html", ctx)
 
+
 def teacher_report(request: HttpRequest, pk: int):
     """
     Get the submission report for a student assignment submission
     """
-    submission = models.Submission.objects.get(id = pk)
+    submission = models.Submission.objects.get(id=pk)
     if not submission.assignment.is_due():
         return render("base/teacher/report.html", context={"is_due": submission.assignment.is_due()})
+    user_content = open(submission.file.path).read()
+    other_submissions = models.Submission.objects.filter(
+        assignment=submission.assignment)
+    other_submissions = list(filter(
+        lambda x: x != submission, other_submissions))
+    content = [open(submission.file.path).read()
+                for submission in other_submissions]
+
+    plagarism = None
+    try:
+        plagarism = models.Plagarism.objects.get(submission=submission)
+    except:
+        plag_stuff = plag_predict(user_content, content, 70)
+        (scores, plagarized) = plag_stuff
+        scores = [str(score) for score in scores]
+
+        students_copied_from = [
+            str(submission.id) for submission in other_submissions]
+        sources = ",".join(students_copied_from)
+        plagarism = models.Plagarism.objects.create(sources_scores=",".join(
+            scores), plagarized=plagarized, submission=submission, sources=sources)
+
     grading = None
     try:
         grading = models.Grading.objects.get(submission=submission)
     except:
-        user_content = open(submission.file.path).read()
-        other_submissions = models.Submission.objects.filter(assignment=submission.assignment)
-        other_submissions = filter(lambda x: x != submission, other_submissions)
-        content = [open(submission.file.path).read() for submission in other_submissions]
-        grading_stuff = predict_word(user_content, 100, ["test topic"], "this is a test topic")
-        grading = models.Grading.objects.create(**grading_stuff, submission=submission)
-        
-    return render(request, "base/teachers/report.html", context={"is_due": False, "grading": grading})
+        # return HttpResponse(b"Grading not found")
+        grading_stuff = grading_predict(
+            user_content, 100, ["test topic"], "this is a test topic")
+        grading = models.Grading.objects.create(
+            **grading_stuff, submission=submission)
 
+    plag_sources = [models.Submission.objects.get(
+        id=int(submission)) for submission in filter(lambda x: x != "", plagarism.sources.split(","))]
+    plag_source_scores = plagarism.sources_scores.split(",")
+    plag_data = zip(plag_sources, plag_source_scores)
+    return render(request, "base/students/report.html", context={"is_due": false, "grading": grading, "plagarism": plagarism, "plag_data": plag_data})
 
 
 # INFO: Auth Routes
@@ -319,7 +378,8 @@ def signup(request: HttpRequest):
             return redirect(models.UserType.get_register_link(user.user_type))
         else:
             print(form.errors)
-            messages.error(request, "There was an error in validating the form")
+            messages.error(
+                request, "There was an error in validating the form")
     form = RegisterUserForm()
     ctx = {"form": form, "is_login": False}
     return render(request, "base/register.html", ctx)

@@ -47,10 +47,10 @@ class User(AbstractUser):
         max_length=2, choices=UserType, default=UserType.STUDENT
     )
 
-    def get_student(self) -> type["Student"] | None:
+    def get_student(self) -> type["Student"]:
         return Student.objects.get(user=self)
 
-    def get_teacher(self) -> type["Teacher"] | None:
+    def get_teacher(self) -> type["Teacher"]:
         return Teacher.objects.get(user=self)
 
     REQUIRED_FIELDS = ["user_type"]
@@ -113,7 +113,7 @@ class Assignment(models.Model):
     def is_due(self) -> bool:
         time = timezone.now()
         due_date = self.due_date
-        time = time + timedelta(hours=1) 
+        time = time + timedelta(hours=1)
         val = time > due_date
 
         print(val, time, due_date)
@@ -122,7 +122,8 @@ class Assignment(models.Model):
 
 class Submission(models.Model):
     # INFO: When we delete an assignment from a course, don't delete the submission
-    assignment = models.ForeignKey(Assignment, on_delete=models.SET_NULL, null=True)
+    assignment = models.ForeignKey(
+        Assignment, on_delete=models.SET_NULL, null=True)
     # INFO: When we delete a student, delete the submission
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     file_name = models.CharField(max_length=200)
@@ -135,8 +136,9 @@ class Submission(models.Model):
 
 class Plagarism(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
-    score = models.FloatField()
     sources = models.TextField(null=True)
+    plagarized = models.BooleanField()
+    sources_scores = models.TextField(max_length=2048)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -152,6 +154,7 @@ class Similarity(models.Model):
     def __str__(self):
         return str(self.score)
 
+
 class Grading(models.Model):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     predicted_score = models.FloatField()
@@ -159,7 +162,7 @@ class Grading(models.Model):
     grammar_errors = models.FloatField()
     readability_score = models.FloatField()
     readability_level = models.TextField(max_length=256)
-    topics_covered=models.TextField()
+    topics_covered = models.TextField()
     description_match = models.TextField()
     total_score = models.FloatField()
     sources = models.TextField(null=True)

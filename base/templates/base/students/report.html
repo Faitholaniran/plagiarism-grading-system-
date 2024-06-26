@@ -15,7 +15,10 @@
     <p>Readability Level: {{ grading.readability_level }}</p>
 
     <h3>Plagarism</h3>
-    <p>not ready yet</p>
+{% for submission, scores in plag_data %} 
+<p>{{ submission.student.user.first_name }}: {{ scores }}% </p>
+{% endfor %}
+<b>Is plagarized: </b> {{ plagarism.plagarized }} {% comment %}
     {% comment %} <p>
       Plagarized: {{ plagarized }} <span class="text-red">({{ plagarism.score }})</span>
     </p> {% endcomment %}
