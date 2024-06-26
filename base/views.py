@@ -163,7 +163,7 @@ def student_report(request: HttpRequest, pk: int):
     try:
         plagarism = models.Plagarism.objects.get(submission=submission)
     except:
-        plag_stuff = plag_predict(user_content, content, 70)
+        plag_stuff = plag_predict(user_content, content)
         (scores, plagarized) = plag_stuff
         scores = [str(score) for score in scores]
 
@@ -315,7 +315,7 @@ def teacher_report(request: HttpRequest, pk: int):
     try:
         plagarism = models.Plagarism.objects.get(submission=submission)
     except:
-        plag_stuff = plag_predict(user_content, content, 70)
+        plag_stuff = plag_predict(user_content, content)
         (scores, plagarized) = plag_stuff
         scores = [str(score) for score in scores]
 

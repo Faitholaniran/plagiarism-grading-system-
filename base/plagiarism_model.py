@@ -133,3 +133,4 @@ def predict(assignment: str, assignment_pool: list[str]):
         print("\nThe assignment contains plagiarism.")
     else:
         print("\nNo plagiarism detected.")
+    return (final_scores, plagiarized)
