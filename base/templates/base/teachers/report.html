@@ -8,16 +8,17 @@
     <p>Report cannot be shown because the assignment is not yet due</p>
   {% else %}
     <h3>Essay Grading</h3>
-    <p>Predicted Essay Score: {{ grading.predicted_score }}</p>
+    <p>Predicted Essay Score: {{ grading.predicted_score }} {% if plagarism.plagarized %}<span class="text-danger">[Removed 10 marks due to plagarism]</span{% endif %}</p>
     <p>Spelling Errors: {{ grading.spelling_errors }}</p>
     <p>Grammar Errors: {{ grading.grammar_errors }}</p>
     <p>Readability Score: {{ grading.readability_score }}</p>
     <p>Readability Level: {{ grading.readability_level }}</p>
 
     <h3>Plagarism</h3>
-{% for submission, scores in plag_data %} 
-<p>{{ submission.student.user.first_name }}: {{ scores }}% </p>
-{% endfor %}
+    {% for submission, scores in plag_data %} 
+    <p>{{ submission.student.user.first_name }}: {{ scores }}% </p>
+    {% endfor %}
+    <b>Is Plagarized: {{ plagarism.plagarized }}</b>
     {% comment %} <p>
       Plagarized: {{ plagarized }} <span class="text-red">({{ plagarism.score }})</span>
     </p> {% endcomment %}
