@@ -2,11 +2,14 @@ import re
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import spacy
 import tensorflow as tf
 from keras.initializers import Orthogonal
+from collections import Counter
 from keras.models import Sequential
 from keras.layers import Dense, Embedding, Conv1D, MaxPooling1D, Flatten,  Bidirectional, Dropout
 from keras.models import load_model
+nlp = spacy.load('en_core_web_md')
 def create_model(vocab_size, maxlen):
     embedding_dims = 100
     filters = 128
@@ -20,9 +23,7 @@ def create_model(vocab_size, maxlen):
     model.add(MaxPooling1D())
     model.add(Conv1D(filters, kernel_size, padding='valid', activation='relu'))
     model.add(MaxPooling1D())
-    model.add(Bidirectional(LSTM(hidden_dims, return_sequences=True,
-                                  kernel_initializer=Orthogonal(),
-                                  recurrent_initializer=Orthogonal())))
+    model.add(Bidirectional(LSTM(hidden_dims, return_sequences=True)))
     model.add(Flatten())
     model.add(Dense(hidden_dims, activation='relu'))
     model.add(Dropout(0.5))
@@ -30,7 +31,6 @@ def create_model(vocab_size, maxlen):
 
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model 
-# Load the trained model
 model_lstm_cnn = load_model('./essay_model_lstm_cnn.h5')
 model_lstm_cnn.summary()  # Print model summary to verify layers
 
